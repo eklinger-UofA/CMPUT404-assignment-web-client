@@ -93,18 +93,15 @@ class HTTPClient(object):
         port = self.get_host_port(url)
         host = self.get_host(url, port)
         s = self.connect(host, port)
-        addrInfo = socket.getaddrinfo(host, port)
-
         get_path = self.get_path(url, host, port)
 
         request = ""
         request += "GET %s HTTP/1.1\r\n" % get_path
         request += "Host: %s\r\n" % host
         request += "Accept: */*\r\n\r\n"
-        print "sending this request:\n %s" % request
         s.send(request)
-        data = self.recvall(s).strip()
 
+        data = self.recvall(s).strip()
         code = self.get_code(data)
         body = self.get_body(data)
         return HTTPRequest(code, body)
@@ -112,10 +109,7 @@ class HTTPClient(object):
     def POST(self, url, args=None):
         port = self.get_host_port(url)
         host = self.get_host(url, port)
-        socket = self.connect('localhost', port)
         s = self.connect(host, port)
-
-        print "trying to POST from this url: %s" % url
         get_path = self.get_path(url, host, port)
 
         body = ""
@@ -131,10 +125,9 @@ class HTTPClient(object):
         if body:
             request += body
             request += "\r\n"
+        s.send(request)
 
-        socket.send(request)
-        data = self.recvall(socket).strip()
-
+        data = self.recvall(s).strip()
         code = self.get_code(data)
         body = self.get_body(data)
         return HTTPRequest(code, body)
