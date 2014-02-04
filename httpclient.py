@@ -115,7 +115,9 @@ class HTTPClient(object):
         port = self.get_host_port(url)
         print port
         host = self.get_host(url, port)
-        socket = self.connect('localhost', port)
+        #s = self.connect('localhost', port)
+        s = self.connect(host, port)
+        addrInfo = socket.getaddrinfo(host, port)
 
         print "trying to GET from this url: %s" % url
         #get_path = url.split(':%s' % port)[-1]
@@ -124,12 +126,12 @@ class HTTPClient(object):
         request = ""
         request += "GET %s HTTP/1.1\r\n" % get_path
         #request += "User-Agent: curl/7.29.0\r\n"
-        #request += "Host: slashdot.org\r\n"
+        #request += "User-Agent: curl/7.21.4 (universal-apple-darwin11.0) libcurl/7.2 1.4 OpenSSL/0.9.8y zlib/1.2.5\r\n"
         request += "Host: %s\r\n" % host
         request += "Accept: */*\r\n\r\n"
-        print "sending this request: %s" % request
-        socket.send(request)
-        data = self.recvall(socket).strip()
+        print "sending this request:\n %s" % request
+        s.send(request)
+        data = self.recvall(s).strip()
         #print "Return start ***********************"
         #lines = return_value.splitlines()
         #print "lines: %s" % lines
@@ -164,6 +166,7 @@ class HTTPClient(object):
             body += "%s=%s&" % (key, args[key])
         body = body.rstrip('&')
         """
+        body = ""
         if args:
             body = urllib.urlencode(args)
 
@@ -172,18 +175,21 @@ class HTTPClient(object):
         #request += "User-Agent: curl/7.29.0\r\n"
         request += "Host: %s\r\n" % host
         request += "Accept: */*\r\n"
-        request += "Content-Length: %d\r\n" % sys.getsizeof(body)
+        #request += "Content-Length: %d\r\n" % sys.getsizeof(body)
+        request += "Content-Length: %d\r\n" % len(body)
         request += "Content-Type: application/x-www-form-urlencoded\r\n\r\n"
-
-        request += body
-        request += "\r\n"
+        if body:
+            request += body
+            request += "\r\n"
 
         print "sending this request: %s" % request
         socket.send(request)
         data = self.recvall(socket).strip()
 
+        print "data from the socket: %s" % data
+
         code = self.get_code(data)
-        #body = self.get_body(data)
+        body = self.get_body(data)
         return HTTPRequest(code, body)
 
     def command(self, url, command="GET", args=None):
